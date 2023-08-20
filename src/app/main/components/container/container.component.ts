@@ -91,6 +91,7 @@ export class ContainerComponent implements OnInit {
       this.artistNames = this.getArtists(res.artists);
       this.albumCoverUrl = res.album.images[1].url;
       this.checkDuplicates(trackId);
+      this.form.controls['track'].setValue(''); // Clear input field after doing a search.
       this.displayResults = true; // Display results when there is a valid response.
     });
   }

@@ -25,3 +25,17 @@
 .search-btn {
   flex: 0 0 8em;
 }
+
+// Results
+.results-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.track-name {
+  margin-bottom: 0;
+}
+.playlist-name {
+  margin-top: 2em;
+  margin-bottom: 0;
+}

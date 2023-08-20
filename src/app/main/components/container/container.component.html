@@ -7,7 +7,7 @@
 <form [formGroup]="form" class="form">
   <mat-form-field class="link-input">
     <mat-label>Spotify link</mat-label>
-    <input matInput formControlName="track" />
+    <input matInput formControlName="track" (keyup.enter)="getTrack()" />
   </mat-form-field>
   <button
     type="button"
@@ -21,14 +21,14 @@
 </form>
 
 <!-- Results -->
-<div *ngIf="displayResults">
+<div *ngIf="displayResults" class="results-container">
   <img [src]="albumCoverUrl" />
-  <h3>{{ trackName }}</h3>
-  <h3>{{ artistNames }}</h3>
+  <h2 class="track-name">{{ trackName }}</h2>
+  <span>{{ artistNames }}</span>
 
-  <h1>Music League:</h1>
-  <h3>{{ musicLeagueResults }}</h3>
+  <h1 class="playlist-name">Music League:</h1>
+  <span>{{ musicLeagueResults }}</span>
 
-  <h1>SOTD 2023:</h1>
-  <h3>{{ sotd2023Results }}</h3>
+  <h1 class="playlist-name">SOTD 2023:</h1>
+  <span>{{ sotd2023Results }}</span>
 </div>
