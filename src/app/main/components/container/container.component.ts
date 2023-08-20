@@ -79,12 +79,18 @@ export class ContainerComponent implements OnInit {
   }
 
   getTrack() {
+    // TODO find a cleaner way to handle this.
     this.displayResults = false; // Hide previous results at the start of new search.
-    const userInput = this.form.controls['track'].value;
+    let userInput = this.form.controls['track'].value;
+    if (userInput.includes('?')) {
+      userInput = userInput.split('?')[0];
+    }
     // The following line allows the user to input the full Spotify link or just the track id.
     const trackId = userInput.includes('/')
       ? userInput.split('/').pop()
       : userInput;
+
+    // Handle extra query parameters
 
     this.spotifyApi.specificTrack(trackId).subscribe((res) => {
       this.trackName = res.name;
