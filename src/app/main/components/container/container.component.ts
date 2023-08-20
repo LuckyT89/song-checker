@@ -15,6 +15,15 @@ export class ContainerComponent implements OnInit {
   musicLeaguePlaylist: any[] = [];
   sotd2023Playlist: any[] = [];
 
+  trackName!: string;
+  artistNames!: string;
+  albumCoverUrl!: string;
+
+  musicLeagueResults!: string;
+  sotd2023Results!: string;
+
+  displayResults = false;
+
   constructor(private spotifyApi: SpotifyApiService) {}
 
   ngOnInit(): void {
@@ -22,14 +31,14 @@ export class ContainerComponent implements OnInit {
     this.getToken();
   }
 
-  createForm() {
+  private createForm() {
     this.form = new FormGroup({
       track: new FormControl(''),
     });
   }
 
   // Get an authorization token for use in future calls.
-  getToken() {
+  private getToken() {
     this.spotifyApi.token().subscribe((res: TokenRes) => {
       this.spotifyApi.updateToken(res.access_token);
 
@@ -52,7 +61,7 @@ export class ContainerComponent implements OnInit {
   // needed to continue adding tracks to the list. For example if a playlist has 270 songs, it will call the endpoint and get the first 100
   // songs and add it to the list, then call the returned url to get the next 100 songs and add it to the list, then call the returned url
   // to get the remaining 70 songs and add it to the list. At this point there will be no returned url in the response and the list is complete.
-  getPlaylistTracks(url: string, playlist: number) {
+  private getPlaylistTracks(url: string, playlist: number) {
     this.spotifyApi.tracks(url).subscribe((res) => {
       res.items.forEach((item: any) => {
         // Currently there is only the Music League and SOTD2023 playlists. Check to add songs to correct list.
@@ -69,14 +78,55 @@ export class ContainerComponent implements OnInit {
     });
   }
 
-  testThing() {
-    console.log('this.musicLeaguePlaylist: ', this.musicLeaguePlaylist);
-    console.log('this.sotd2023Playlist: ', this.sotd2023Playlist);
+  getTrack() {
+    this.displayResults = false; // Hide previous results at the start of new search.
+    const userInput = this.form.controls['track'].value;
+    // The following line allows the user to input the full Spotify link or just the track id.
+    const trackId = userInput.includes('/')
+      ? userInput.split('/').pop()
+      : userInput;
+
+    this.spotifyApi.specificTrack(trackId).subscribe((res) => {
+      this.trackName = res.name;
+      this.artistNames = this.getArtists(res.artists);
+      this.albumCoverUrl = res.album.images[1].url;
+      this.checkDuplicates(trackId);
+      this.displayResults = true; // Display results when there is a valid response.
+    });
   }
 
-  getTrack() {
-    const link = this.form.controls['track'].value;
-    const trackId = link.split('/').pop();
-    console.log('trackId: ', trackId);
+  // TODO move to service, add types.
+  private getArtists(artists: any[]) {
+    let artistString = '';
+    artists.forEach((artist) => {
+      artistString += artist.name + ', ';
+    });
+    artistString = artistString.slice(0, -2);
+    return artistString;
+  }
+
+  private checkDuplicates(trackId: string) {
+    const musicLeagueMatchIndex = this.musicLeaguePlaylist.findIndex(
+      (track) => track.track.id === trackId
+    );
+    const sotd2323MatchIndex = this.sotd2023Playlist.findIndex(
+      (track) => track.track.id === trackId
+    );
+
+    if (musicLeagueMatchIndex === -1) {
+      this.musicLeagueResults = 'This song has not been sent yet.';
+    } else {
+      this.musicLeagueResults = `This song was submitted already! Song ${
+        musicLeagueMatchIndex + 1
+      } of ${this.musicLeaguePlaylist.length}`;
+    }
+
+    if (sotd2323MatchIndex === -1) {
+      this.sotd2023Results = 'This song has not been sent yet.';
+    } else {
+      this.sotd2023Results = `This song was submitted already! Song ${
+        sotd2323MatchIndex + 1
+      } of ${this.sotd2023Playlist.length}`;
+    }
   }
 }

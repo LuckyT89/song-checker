@@ -18,12 +18,17 @@
   >
     Search
   </button>
-  <button
-    type="button"
-    mat-raised-button
-    class="search-btn"
-    (click)="testThing()"
-  >
-    Test
-  </button>
 </form>
+
+<!-- Results -->
+<div *ngIf="displayResults">
+  <img [src]="albumCoverUrl" />
+  <h3>{{ trackName }}</h3>
+  <h3>{{ artistNames }}</h3>
+
+  <h1>Music League:</h1>
+  <h3>{{ musicLeagueResults }}</h3>
+
+  <h1>SOTD 2023:</h1>
+  <h3>{{ sotd2023Results }}</h3>
+</div>

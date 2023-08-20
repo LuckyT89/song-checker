@@ -35,12 +35,24 @@ export class SpotifyApiService {
     this.tokenValue = token;
   }
 
+  // Call tracks endpoint.
   tracks(url: string): Observable<any> {
     const authorizationValue = `Bearer ${this.tokenValue}`;
 
     const headers = new HttpHeaders().set('Authorization', authorizationValue);
 
     return this.http.get<any>(url, {
+      headers: headers,
+    });
+  }
+
+  // Call tracks endpoint to get a single track.
+  specificTrack(trackId: string): Observable<any> {
+    const authorizationValue = `Bearer ${this.tokenValue}`;
+
+    const headers = new HttpHeaders().set('Authorization', authorizationValue);
+
+    return this.http.get<any>(`https://api.spotify.com/v1/tracks/${trackId}`, {
       headers: headers,
     });
   }
