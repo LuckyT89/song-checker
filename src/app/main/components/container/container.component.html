@@ -4,10 +4,26 @@
 </div>
 
 <!-- Form -->
-<form class="form">
+<form [formGroup]="form" class="form">
   <mat-form-field class="link-input">
     <mat-label>Spotify link</mat-label>
-    <input matInput />
+    <input matInput formControlName="track" />
   </mat-form-field>
-  <button mat-raised-button color="primary" class="search-btn">Search</button>
+  <button
+    type="button"
+    mat-raised-button
+    color="primary"
+    class="search-btn"
+    (click)="getTrack()"
+  >
+    Search
+  </button>
+  <button
+    type="button"
+    mat-raised-button
+    class="search-btn"
+    (click)="testThing()"
+  >
+    Test
+  </button>
 </form>

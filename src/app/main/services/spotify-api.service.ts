@@ -7,6 +7,8 @@ import { TokenRes } from '../models/spotify-api-model';
   providedIn: 'root',
 })
 export class SpotifyApiService {
+  tokenValue!: string;
+
   constructor(private http: HttpClient) {}
 
   // Call the token endpoint to get a token used in all other requests.
@@ -27,5 +29,19 @@ export class SpotifyApiService {
         headers: headers,
       }
     );
+  }
+
+  updateToken(token: string) {
+    this.tokenValue = token;
+  }
+
+  tracks(url: string): Observable<any> {
+    const authorizationValue = `Bearer ${this.tokenValue}`;
+
+    const headers = new HttpHeaders().set('Authorization', authorizationValue);
+
+    return this.http.get<any>(url, {
+      headers: headers,
+    });
   }
 }

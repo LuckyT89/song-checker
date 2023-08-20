@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 
 //
 import { HttpClientModule } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [ContainerComponent],
@@ -17,6 +18,7 @@ import { HttpClientModule } from '@angular/common/http';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    ReactiveFormsModule,
   ],
   exports: [ContainerComponent],
 })
