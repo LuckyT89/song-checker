@@ -3,6 +3,7 @@ import { SpotifyApiService } from '../../services/spotify-api.service';
 import { TokenRes } from '../../models/spotify-api-model';
 import { Playlist } from '../../models/container-model';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Observable, map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-container',
@@ -24,16 +25,46 @@ export class ContainerComponent implements OnInit {
 
   displayResults = false;
 
+  // autocomplete
+  options: any[] = [];
+  filteredOptions!: Observable<any[]>;
+
+  get playlist() {
+    return this.form.get('playlist');
+  }
+
   constructor(private spotifyApi: SpotifyApiService) {}
 
   ngOnInit(): void {
     this.createForm();
     this.getToken();
+
+    // autocomplete
+    // this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
+    //   startWith(''),
+    //   map((value) => {
+    //     const name = typeof value === 'string' ? value : value?.name;
+    //     return name ? this._filter(name as string) : this.options.slice();
+    //   })
+    // );
+  }
+
+  displayFn(user: any): string {
+    return user && user.track.name ? user.track.name : '';
+  }
+
+  private _filter(name: string): any[] {
+    const filterValue = name.toLowerCase();
+
+    return this.options.filter((option) =>
+      option.track.name.toLowerCase().includes(filterValue)
+    );
   }
 
   private createForm() {
     this.form = new FormGroup({
       track: new FormControl(''),
+      playlist: new FormControl('musicLeague'),
     });
   }
 
@@ -75,32 +106,56 @@ export class ContainerComponent implements OnInit {
       if (res.next) {
         this.getPlaylistTracks(res.next, playlist);
       }
+      if (!res.next && playlist === Playlist.MusicLeague) {
+        // Music league playlist is complete
+        this.options = this.musicLeaguePlaylist;
+
+        this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
+          startWith(''),
+          map((value) => {
+            const name = typeof value === 'string' ? value : value?.name;
+            return name ? this._filter(name as string) : this.options.slice();
+          })
+        );
+      }
     });
   }
 
-  getTrack() {
-    // TODO find a cleaner way to handle this.
-    this.displayResults = false; // Hide previous results at the start of new search.
-    let userInput = this.form.controls['track'].value;
-    if (userInput.includes('?')) {
-      userInput = userInput.split('?')[0];
-    }
-    // The following line allows the user to input the full Spotify link or just the track id.
-    const trackId = userInput.includes('/')
-      ? userInput.split('/').pop()
-      : userInput;
+  // This method is called when the user selects a song from the list.
+  songSelected() {
+    console.log('selected song: ', this.form.controls['track'].value);
 
-    // Handle extra query parameters
-
-    this.spotifyApi.specificTrack(trackId).subscribe((res) => {
-      this.trackName = res.name;
-      this.artistNames = this.getArtists(res.artists);
-      this.albumCoverUrl = res.album.images[1].url;
-      this.checkDuplicates(trackId);
-      this.form.controls['track'].setValue(''); // Clear input field after doing a search.
-      this.displayResults = true; // Display results when there is a valid response.
-    });
+    this.trackName = this.form.controls['track'].value.track.name;
+    this.artistNames = this.getArtists(
+      this.form.controls['track'].value.track.artists
+    );
+    this.albumCoverUrl =
+      this.form.controls['track'].value.track.album.images[1].url;
   }
+
+  // getTrack() {
+  //   // TODO find a cleaner way to handle this.
+  //   this.displayResults = false; // Hide previous results at the start of new search.
+  //   let userInput = this.form.controls['track'].value;
+  //   if (userInput.includes('?')) {
+  //     userInput = userInput.split('?')[0];
+  //   }
+  //   // The following line allows the user to input the full Spotify link or just the track id.
+  //   const trackId = userInput.includes('/')
+  //     ? userInput.split('/').pop()
+  //     : userInput;
+
+  //   // Handle extra query parameters
+
+  //   this.spotifyApi.specificTrack(trackId).subscribe((res) => {
+  //     this.trackName = res.name;
+  //     this.artistNames = this.getArtists(res.artists);
+  //     this.albumCoverUrl = res.album.images[1].url;
+  //     this.checkDuplicates(trackId);
+  //     this.form.controls['track'].setValue(''); // Clear input field after doing a search.
+  //     this.displayResults = true; // Display results when there is a valid response.
+  //   });
+  // }
 
   // TODO move to service, add types.
   private getArtists(artists: any[]) {
@@ -112,28 +167,48 @@ export class ContainerComponent implements OnInit {
     return artistString;
   }
 
-  private checkDuplicates(trackId: string) {
-    const musicLeagueMatchIndex = this.musicLeaguePlaylist.findIndex(
-      (track) => track.track.id === trackId
-    );
-    const sotd2323MatchIndex = this.sotd2023Playlist.findIndex(
-      (track) => track.track.id === trackId
-    );
+  // private checkDuplicates(trackId: string) {
+  //   const musicLeagueMatchIndex = this.musicLeaguePlaylist.findIndex(
+  //     (track) => track.track.id === trackId
+  //   );
+  //   const sotd2323MatchIndex = this.sotd2023Playlist.findIndex(
+  //     (track) => track.track.id === trackId
+  //   );
 
-    if (musicLeagueMatchIndex === -1) {
-      this.musicLeagueResults = 'This song has not been sent yet.';
-    } else {
-      this.musicLeagueResults = `This song was submitted already! Song ${
-        musicLeagueMatchIndex + 1
-      } of ${this.musicLeaguePlaylist.length}`;
-    }
+  //   if (musicLeagueMatchIndex === -1) {
+  //     this.musicLeagueResults = 'This song has not been sent yet.';
+  //   } else {
+  //     this.musicLeagueResults = `This song was submitted already! Song ${
+  //       musicLeagueMatchIndex + 1
+  //     } of ${this.musicLeaguePlaylist.length}`;
+  //   }
 
-    if (sotd2323MatchIndex === -1) {
-      this.sotd2023Results = 'This song has not been sent yet.';
+  //   if (sotd2323MatchIndex === -1) {
+  //     this.sotd2023Results = 'This song has not been sent yet.';
+  //   } else {
+  //     this.sotd2023Results = `This song was submitted already! Song ${
+  //       sotd2323MatchIndex + 1
+  //     } of ${this.sotd2023Playlist.length}`;
+  //   }
+  // }
+
+  changePlaylist() {
+    // Clear previous results.
+    this.trackName = '';
+    this.artistNames = '';
+    this.albumCoverUrl = '';
+
+    console.log('selected value: ', this.form.controls['playlist'].value);
+    if (this.form.controls['playlist'].value === 'musicLeague') {
+      console.log('musicLeague');
+      this.options = this.musicLeaguePlaylist;
+      // Add this line so the list gets updated properly when clicking the radio buttons.
+      this.form.controls['track'].setValue('');
     } else {
-      this.sotd2023Results = `This song was submitted already! Song ${
-        sotd2323MatchIndex + 1
-      } of ${this.sotd2023Playlist.length}`;
+      console.log('SOTD2023');
+      this.options = this.sotd2023Playlist;
+      // Add this line so the list gets updated properly when clicking the radio buttons.
+      this.form.controls['track'].setValue('');
     }
   }
 }

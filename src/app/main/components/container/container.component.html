@@ -5,30 +5,42 @@
 
 <!-- Form -->
 <form [formGroup]="form" class="form">
-  <mat-form-field class="link-input">
-    <mat-label>Spotify link</mat-label>
-    <input matInput formControlName="track" (keyup.enter)="getTrack()" />
+  <mat-form-field class="song-input">
+    <mat-label>Song name</mat-label>
+    <input
+      type="text"
+      matInput
+      formControlName="track"
+      [matAutocomplete]="auto"
+    />
+    <mat-autocomplete
+      requireSelection
+      #auto="matAutocomplete"
+      [displayWith]="displayFn"
+      (optionSelected)="songSelected()"
+    >
+      <mat-option
+        *ngFor="let option of filteredOptions | async"
+        [value]="option"
+      >
+        {{ option.track.name }}
+      </mat-option>
+    </mat-autocomplete>
   </mat-form-field>
-  <button
-    type="button"
-    mat-raised-button
-    color="primary"
-    class="search-btn"
-    (click)="getTrack()"
+
+  <mat-radio-group
+    formControlName="playlist"
+    class="radio-btns"
+    (change)="changePlaylist()"
   >
-    Search
-  </button>
+    <mat-radio-button value="musicLeague">Music League</mat-radio-button>
+    <mat-radio-button value="SOTD2023">SOTD 2023</mat-radio-button>
+  </mat-radio-group>
 </form>
 
 <!-- Results -->
-<div *ngIf="displayResults" class="results-container">
+<div class="results-container">
   <img [src]="albumCoverUrl" />
   <h2 class="track-name">{{ trackName }}</h2>
   <span>{{ artistNames }}</span>
-
-  <h1 class="playlist-name">Music League:</h1>
-  <span>{{ musicLeagueResults }}</span>
-
-  <h1 class="playlist-name">SOTD 2023:</h1>
-  <span>{{ sotd2023Results }}</span>
 </div>
