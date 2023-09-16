@@ -15,13 +15,12 @@ export class ContainerComponent implements OnInit {
   token!: string;
   musicLeaguePlaylist: any[] = [];
   sotd2023Playlist: any[] = [];
+  musicLeaguePlaylistComplete: boolean = false;
+  sotd2023PlaylistComplete: boolean = false;
 
   trackName!: string;
   artistNames!: string;
   albumCoverUrl!: string;
-
-  musicLeagueResults!: string;
-  sotd2023Results!: string;
 
   displayResults = false;
 
@@ -38,15 +37,6 @@ export class ContainerComponent implements OnInit {
   ngOnInit(): void {
     this.createForm();
     this.getToken();
-
-    // autocomplete
-    // this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
-    //   startWith(''),
-    //   map((value) => {
-    //     const name = typeof value === 'string' ? value : value?.name;
-    //     return name ? this._filter(name as string) : this.options.slice();
-    //   })
-    // );
   }
 
   displayFn(user: any): string {
@@ -66,6 +56,9 @@ export class ContainerComponent implements OnInit {
       track: new FormControl(''),
       playlist: new FormControl('musicLeague'),
     });
+
+    // Disable form to start so the user can't use it until all endpoints are finished being called.
+    this.form.disable();
   }
 
   // Get an authorization token for use in future calls.
@@ -102,23 +95,46 @@ export class ContainerComponent implements OnInit {
           this.sotd2023Playlist.push(item);
         }
       });
+
       // Call endpoint again with the returned url if there is more left of the playlist.
       if (res.next) {
         this.getPlaylistTracks(res.next, playlist);
       }
-      if (!res.next && playlist === Playlist.MusicLeague) {
-        // Music league playlist is complete
-        this.options = this.musicLeaguePlaylist;
 
-        this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
-          startWith(''),
-          map((value) => {
-            const name = typeof value === 'string' ? value : value?.name;
-            return name ? this._filter(name as string) : this.options.slice();
-          })
-        );
+      // Music league playlist is complete
+      if (!res.next && playlist === Playlist.MusicLeague) {
+        this.musicLeaguePlaylistComplete = true;
+      }
+
+      // SOTD 2023 playlist is complete
+      if (!res.next && playlist === Playlist.SOTD2023) {
+        this.sotd2023PlaylistComplete = true;
+      }
+
+      // Both playlists are complete
+      if (this.musicLeaguePlaylistComplete && this.sotd2023PlaylistComplete) {
+        this.playlistsComplete();
       }
     });
+  }
+
+  // Set the list options the user will see in the dropdown and enable the radio buttons once finished calling all endpoints and the playlists are complete.
+  playlistsComplete() {
+    this.options = this.musicLeaguePlaylist;
+
+    // testing
+    console.log('this.musicLeaguePlaylist: ', this.musicLeaguePlaylist);
+    console.log('this.SOTD2023Playlist: ', this.sotd2023Playlist);
+
+    this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        const name = typeof value === 'string' ? value : value?.name;
+        return name ? this._filter(name as string) : this.options.slice();
+      })
+    );
+
+    this.form.enable();
   }
 
   // This method is called when the user selects a song from the list.
@@ -133,30 +149,6 @@ export class ContainerComponent implements OnInit {
       this.form.controls['track'].value.track.album.images[1].url;
   }
 
-  // getTrack() {
-  //   // TODO find a cleaner way to handle this.
-  //   this.displayResults = false; // Hide previous results at the start of new search.
-  //   let userInput = this.form.controls['track'].value;
-  //   if (userInput.includes('?')) {
-  //     userInput = userInput.split('?')[0];
-  //   }
-  //   // The following line allows the user to input the full Spotify link or just the track id.
-  //   const trackId = userInput.includes('/')
-  //     ? userInput.split('/').pop()
-  //     : userInput;
-
-  //   // Handle extra query parameters
-
-  //   this.spotifyApi.specificTrack(trackId).subscribe((res) => {
-  //     this.trackName = res.name;
-  //     this.artistNames = this.getArtists(res.artists);
-  //     this.albumCoverUrl = res.album.images[1].url;
-  //     this.checkDuplicates(trackId);
-  //     this.form.controls['track'].setValue(''); // Clear input field after doing a search.
-  //     this.displayResults = true; // Display results when there is a valid response.
-  //   });
-  // }
-
   // TODO move to service, add types.
   private getArtists(artists: any[]) {
     let artistString = '';
@@ -166,31 +158,6 @@ export class ContainerComponent implements OnInit {
     artistString = artistString.slice(0, -2);
     return artistString;
   }
-
-  // private checkDuplicates(trackId: string) {
-  //   const musicLeagueMatchIndex = this.musicLeaguePlaylist.findIndex(
-  //     (track) => track.track.id === trackId
-  //   );
-  //   const sotd2323MatchIndex = this.sotd2023Playlist.findIndex(
-  //     (track) => track.track.id === trackId
-  //   );
-
-  //   if (musicLeagueMatchIndex === -1) {
-  //     this.musicLeagueResults = 'This song has not been sent yet.';
-  //   } else {
-  //     this.musicLeagueResults = `This song was submitted already! Song ${
-  //       musicLeagueMatchIndex + 1
-  //     } of ${this.musicLeaguePlaylist.length}`;
-  //   }
-
-  //   if (sotd2323MatchIndex === -1) {
-  //     this.sotd2023Results = 'This song has not been sent yet.';
-  //   } else {
-  //     this.sotd2023Results = `This song was submitted already! Song ${
-  //       sotd2323MatchIndex + 1
-  //     } of ${this.sotd2023Playlist.length}`;
-  //   }
-  // }
 
   changePlaylist() {
     // Clear previous results.
