@@ -14,9 +14,9 @@ export class ContainerComponent implements OnInit {
   form: FormGroup = new FormGroup({});
   token!: string;
   musicLeaguePlaylist: any[] = [];
-  sotd2023Playlist: any[] = [];
+  sotd2024Playlist: any[] = [];
   musicLeaguePlaylistComplete: boolean = false;
-  sotd2023PlaylistComplete: boolean = false;
+  sotd2024PlaylistComplete: boolean = false;
 
   trackName!: string;
   artistNames!: string;
@@ -72,10 +72,10 @@ export class ContainerComponent implements OnInit {
         Playlist.MusicLeague
       );
 
-      // Get tracks for SOTD2023 playlist.
+      // Get tracks for SOTD2024 playlist.
       this.getPlaylistTracks(
-        'https://api.spotify.com/v1/playlists/6j6NSEbOSGqoekoXF2zMXw/tracks',
-        Playlist.SOTD2023
+        'https://api.spotify.com/v1/playlists/05mL0Yz4VYRRTKD3qVCFIr/tracks',
+        Playlist.SOTD2024
       );
     });
   }
@@ -88,11 +88,11 @@ export class ContainerComponent implements OnInit {
   private getPlaylistTracks(url: string, playlist: number) {
     this.spotifyApi.tracks(url).subscribe((res) => {
       res.items.forEach((item: any) => {
-        // Currently there is only the Music League and SOTD2023 playlists. Check to add songs to correct list.
+        // Currently there is only the Music League and SOTD2024 playlists. Check to add songs to correct list.
         if (playlist === Playlist.MusicLeague) {
           this.musicLeaguePlaylist.push(item);
         } else {
-          this.sotd2023Playlist.push(item);
+          this.sotd2024Playlist.push(item);
         }
       });
 
@@ -106,13 +106,13 @@ export class ContainerComponent implements OnInit {
         this.musicLeaguePlaylistComplete = true;
       }
 
-      // SOTD 2023 playlist is complete
-      if (!res.next && playlist === Playlist.SOTD2023) {
-        this.sotd2023PlaylistComplete = true;
+      // SOTD 2024 playlist is complete
+      if (!res.next && playlist === Playlist.SOTD2024) {
+        this.sotd2024PlaylistComplete = true;
       }
 
       // Both playlists are complete
-      if (this.musicLeaguePlaylistComplete && this.sotd2023PlaylistComplete) {
+      if (this.musicLeaguePlaylistComplete && this.sotd2024PlaylistComplete) {
         this.playlistsComplete();
       }
     });
@@ -124,7 +124,7 @@ export class ContainerComponent implements OnInit {
 
     // testing
     console.log('this.musicLeaguePlaylist: ', this.musicLeaguePlaylist);
-    console.log('this.SOTD2023Playlist: ', this.sotd2023Playlist);
+    console.log('this.SOTD2024Playlist: ', this.sotd2024Playlist);
 
     this.filteredOptions = this.form.controls['track'].valueChanges.pipe(
       startWith(''),
@@ -172,8 +172,8 @@ export class ContainerComponent implements OnInit {
       // Add this line so the list gets updated properly when clicking the radio buttons.
       this.form.controls['track'].setValue('');
     } else {
-      console.log('SOTD2023');
-      this.options = this.sotd2023Playlist;
+      console.log('SOTD2024');
+      this.options = this.sotd2024Playlist;
       // Add this line so the list gets updated properly when clicking the radio buttons.
       this.form.controls['track'].setValue('');
     }

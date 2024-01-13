@@ -1,4 +1,4 @@
 export enum Playlist {
   MusicLeague,
-  SOTD2023,
+  SOTD2024,
 }
